@@ -52,7 +52,8 @@ class Parameters:
     rdkit_2d_normalized: List[bool]  # obsolete: use features = "rdkit_2d_normalized"
     features: List[str]
     target_column: List[str]
-
+    # TODO rdkit_desc_normalized: List[bool]
+    # morgan
 
 @add_tag("__component")
 class ChemProp:
