@@ -16,7 +16,7 @@ Example TOML (single endpoint):
 # -------------------------------------------------------------------
 [[component.DeepChemDMPNN.endpoint]]
 name = "DeepChem DMPNN (de) regressor"
-weight = 0.7
+weight = 0.7 (requires adjustment for different molecular properties)
 
 # ---- Required paths (relative to REINVENT run directory) ----
 param.checkpoint_path  = "models/de/checkpoints/last-v2.ckpt"
@@ -32,7 +32,7 @@ param.batch_size = 256         # inference batch size used by DeepChem generator
 param.features_generators = "rdkit_desc_normalized,morgan"
 
 # ---- Model architecture (MUST match training) ----
-# These map to the DMPNNModel constructor used in your training script:
+# These map to the DMPNNModel constructor used in training script:
 #   n_steps         -> depth
 #   ffn_hidden_dim  -> ffn_hidden
 #   ffn_num_layers  -> ffn_layers
@@ -45,7 +45,7 @@ param.ffn_layers = 3
 param.dropout_p = 0.10
 param.bias = true
 
-# If you don't know it (or want auto-detect), leave as -1.
+# leave as -1 for auto-detection
 # If auto-detect mismatches training, set the correct integer explicitly.
 param.global_features_size = -1
 
@@ -78,10 +78,10 @@ import joblib
 import numpy as np
 import torch
 
-import deepchem as dc
-from deepchem.models import DMPNNModel
 from pydantic.dataclasses import dataclass
-
+import deepchem as dc
+from deepchem import feat
+from deepchem import trans
 from .add_tag import add_tag
 from .component_results import ComponentResults
 from reinvent.scoring.utils import suppress_output
@@ -97,7 +97,9 @@ def _parse_csv_list(s: str) -> List[str]:
     return [x.strip() for x in s.split(",") if x.strip()]
 
 
-def _untransform_y_array(y: np.ndarray, transformer: Optional[dc.trans.Transformer]) -> np.ndarray:
+def _untransform_y_array(
+    y: np.ndarray, transformer: Optional[trans.Transformer]
+) -> np.ndarray:
     """
     Untransform y back to original units. DeepChem transformers typically expect 2D.
     Returns shape (N,).
@@ -121,7 +123,7 @@ def _device_from_string(device: str) -> torch.device:
 
 
 def _detect_global_features_size_from_smiles(
-    featurizer: dc.feat.DMPNNFeaturizer,
+    featurizer: feat.DMPNNFeaturizer,
     smiles_try: Sequence[str] = ("CC", "CCC", "c1ccccc1"),
 ) -> int:
     """
@@ -160,13 +162,16 @@ def _extract_net_state_dict_from_lightning_ckpt(ckpt_path: str) -> dict:
     else:
         raise ValueError(f"Unexpected checkpoint format at: {ckpt_path}")
 
-    # Prefer 'net.' prefix (your code uses self.net = dc_model.model)
+
     if any(k.startswith("net.") for k in sd.keys()):
-        return {k[len("net."):]: v for k, v in sd.items() if k.startswith("net.")}
+        return {k[len("net.") :]: v for k, v in sd.items() if k.startswith("net.")}
     # Alternate prefix
     if any(k.startswith("dc_model.model.") for k in sd.keys()):
-        return {k[len("dc_model.model."):]: v for k, v in sd.items() if k.startswith("dc_model.model.")}
-    # Fallback: already the net state dict
+        return {
+            k[len("dc_model.model.") :]: v
+            for k, v in sd.items()
+            if k.startswith("dc_model.model.")
+        }
     return sd
 
 
@@ -180,22 +185,20 @@ class Parameters:
     even when there is only one endpoint.
     """
 
-    # Required
     checkpoint_path: List[str]
     transformer_path: List[str]
 
-    # Optional runtime
     device: List[str]
     batch_size: List[int]
 
     # Optional: must match training if different from defaults, choose best one from Optuna
     features_generators: List[str]  # e.g. "rdkit_desc_normalized,morgan"
-    depth: List[int]               # DMPNN n_steps
+    depth: List[int]  
     ffn_hidden: List[int]
     ffn_layers: List[int]
     dropout_p: List[float]
     bias: List[bool]
-    global_features_size: List[int]  # -1 means auto-detect, or read from config 
+    global_features_size: List[int]  # -1 means auto-detect, or read from config
 
 
 @add_tag("__component")
@@ -205,7 +208,7 @@ class DeepChemDMPNN:
     """
 
     def __init__(self, params: Parameters):
-        self.smiles_type = "rdkit_smiles"  # used by @normalize_smiles
+        self.smiles_type = "rdkit_smiles"  # @normalize_smiles
 
         # ---- Resolve params (use endpoint 0) ----
         self.checkpoint_path = params.checkpoint_path[0]
@@ -214,29 +217,64 @@ class DeepChemDMPNN:
         device_str = params.device[0] if params.device and params.device[0] else "cpu"
         self.device = _device_from_string(device_str)
 
-        self.batch_size = int(params.batch_size[0]) if params.batch_size and params.batch_size[0] else 256
+        self.batch_size = (
+            int(params.batch_size[0])
+            if params.batch_size and params.batch_size[0]
+            else 256
+        )
 
-        feats_str = params.features_generators[0] if params.features_generators and params.features_generators[0] else "rdkit_desc_normalized,morgan"
+        feats_str = (
+            params.features_generators[0]
+            if params.features_generators and params.features_generators[0]
+            else "rdkit_desc_normalized,morgan"
+        )
         self.features_generators = _parse_csv_list(feats_str)
 
-        # Defaults aligned to your training script's CLI defaults
-        self.depth = int(params.depth[0]) if params.depth and params.depth[0] else 3
-        self.ffn_hidden = int(params.ffn_hidden[0]) if params.ffn_hidden and params.ffn_hidden[0] else 300
-        self.ffn_layers = int(params.ffn_layers[0]) if params.ffn_layers and params.ffn_layers[0] else 3
-        self.dropout_p = float(params.dropout_p[0]) if params.dropout_p and params.dropout_p[0] else 0.1
-        self.bias = bool(params.bias[0]) if params.bias and (params.bias[0] is not None) else True
 
-        gfs = int(params.global_features_size[0]) if params.global_features_size and params.global_features_size[0] is not None else -1
+        self.depth = (
+            int(params.depth[0]) if params.depth and params.depth[0] is not None else 3
+        )
+        self.ffn_hidden = (
+            int(params.ffn_hidden[0])
+            if params.ffn_hidden and params.ffn_hidden[0] is not None
+            else 300
+        )
+        self.ffn_layers = (
+            int(params.ffn_layers[0])
+            if params.ffn_layers and params.ffn_layers[0] is not None
+            else 3
+        )
+        self.dropout_p = (
+            float(params.dropout_p[0])
+            if params.dropout_p and params.dropout_p[0] is not None
+            else 0.1
+        )
+        self.bias = (
+            bool(params.bias[0])
+            if params.bias and (params.bias[0] is not None)
+            else True
+        )
+
+        gfs = (
+            int(params.global_features_size[0])
+            if params.global_features_size
+            and params.global_features_size[0] is not None
+            else -1
+        )
 
         # ---- Load transformer ----
         if not os.path.exists(self.transformer_path):
             raise FileNotFoundError(f"y_transformer not found: {self.transformer_path}")
 
         with suppress_output():
-            self.y_transformer: Optional[dc.trans.Transformer] = joblib.load(self.transformer_path)
+            self.y_transformer: Optional[trans.Transformer] = joblib.load(
+                self.transformer_path
+            )
 
         # ---- Build featurizer ----
-        self.featurizer = dc.feat.DMPNNFeaturizer(features_generators=self.features_generators)
+        self.featurizer = feat.DMPNNFeaturizer(
+            features_generators=self.features_generators
+        )
 
         # ---- Determine global_features_size ----
         if gfs < 0:
@@ -247,15 +285,17 @@ class DeepChemDMPNN:
 
         # ---- Instantiate DeepChem model (must match training arch) ----
         # model_dir is required; keep it near the checkpoint to avoid clutter
-        model_dir = os.path.abspath(os.path.join(os.path.dirname(self.checkpoint_path), "..", "dc_model_cache"))
+        model_dir = os.path.abspath(
+            os.path.join(os.path.dirname(self.checkpoint_path), "..", "dc_model_cache")
+        )
         os.makedirs(model_dir, exist_ok=True)
 
-        self.dc_model = DMPNNModel(
+        self.dc_model = dc.DMPNNModel(
             mode="regression",
             n_tasks=1,
             batch_size=self.batch_size,  # used by generator
             model_dir=model_dir,
-            learning_rate=1e-4,          # not used for inference but required by constructor
+            learning_rate=1e-4,  # not used for inference but required by constructor
             n_steps=self.depth,
             ffn_hidden_dim=self.ffn_hidden,
             ffn_num_layers=self.ffn_layers,
@@ -270,12 +310,20 @@ class DeepChemDMPNN:
 
         with suppress_output():
             net_sd = _extract_net_state_dict_from_lightning_ckpt(self.checkpoint_path)
-            missing, unexpected = self.dc_model.model.load_state_dict(net_sd, strict=False)
+            missing, unexpected = self.dc_model.model.load_state_dict(
+                net_sd, strict=False
+            )
 
         if missing:
-            logger.warning("Missing keys while loading DMPNN weights (showing up to 10): %s", missing[:10])
+            logger.warning(
+                "Missing keys while loading DMPNN weights (showing up to 10): %s",
+                missing[:10],
+            )
         if unexpected:
-            logger.warning("Unexpected keys while loading DMPNN weights (showing up to 10): %s", unexpected[:10])
+            logger.warning(
+                "Unexpected keys while loading DMPNN weights (showing up to 10): %s",
+                unexpected[:10],
+            )
 
         self.dc_model.model.to(self.device)
         self.dc_model.model.eval()
@@ -328,17 +376,19 @@ class DeepChemDMPNN:
         y = np.zeros((len(feats), 1), dtype=np.float32)
         w = np.ones((len(feats), 1), dtype=np.float32)
 
-        dataset = dc.data.NumpyDataset(X=np.asarray(feats, dtype=object), y=y, w=w, ids=np.asarray(ids))
+        dataset = dc.data.NumpyDataset(
+            X=np.asarray(feats, dtype=object), y=y, w=w, ids=np.asarray(ids)
+        )
 
-        gen = self.dc_model.default_generator(dataset, batch_size=self.batch_size, pad_batches=False)
+        gen = self.dc_model.default_generator(
+            dataset, batch_size=self.batch_size, pad_batches=False
+        )
 
         preds: List[np.ndarray] = []
         self.dc_model.model.eval()
 
         for batch in gen:
-            # DeepChem yields (inputs, labels, weights) after _prepare_batch
             inputs, labels, weights = self.dc_model._prepare_batch(batch)
-            # Move inputs to device (inputs may be a complex object with .to())
             if hasattr(inputs, "to") and callable(getattr(inputs, "to")):
                 try:
                     inputs = inputs.to(self.device)
@@ -388,8 +438,8 @@ class DeepChemDMPNN:
             return ComponentResults([out.astype(float)])
 
         valid_smiles = [smiles[i] for i in valid_idx]
-        y_pred_norm_2d = self._predict_norm(feats, valid_smiles)  # (N_valid, 1)
-        y_pred = _untransform_y_array(y_pred_norm_2d, self.y_transformer)  # (N_valid,)
+        y_pred_norm_2d = self._predict_norm(feats, valid_smiles) 
+        y_pred = _untransform_y_array(y_pred_norm_2d, self.y_transformer) 
 
         # Fill in outputs in original order
         for j, i in enumerate(valid_idx):
@@ -399,9 +449,6 @@ class DeepChemDMPNN:
                 out[i] = np.nan
 
         return ComponentResults([out.astype(float)])
-
-
-
 
 
 # TODO If Optuna produced non-default depth/ffn_hidden/ffn_layers/dropout_p/global_features_size, set via TOML param (or add model_meta.json and load in __init__).

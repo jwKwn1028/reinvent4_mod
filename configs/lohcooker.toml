@@ -1,0 +1,61 @@
+run_type = "scoring"
+json_out_config = "lohc_scoring.json"
+
+[parameters]
+smiles_file = "lohc.smi"
+output_csv = "lohcscore.csv"
+
+[scoring]
+
+type = "geometric_mean"
+parallel = -1 # or set specific
+
+[[scoring.component]]
+[scoring.component.custom_alerts]
+
+[[scoring.component.custom_alerts.endpoint]]
+name = "Alerts"
+
+params.smarts = [
+
+]
+
+[[scoring.component]]
+[scoring.component.NumRotBond]
+name = "numrotbond"
+weight = 0
+
+[[scoring.component]]
+[scoring.component.MolecularWeight]
+name = "MW"
+weight = 0
+
+[[scoring.component]]
+[scoring.component.SlogP]
+name = "SlogP"
+weight = 0
+
+[[scoring.component]]
+[scoring.component.TPSA]
+name = "tpsa"
+weight = 0
+
+[[scoring.component]]
+[scoring.component.HBondDonors]
+name = "HBD"
+weight = 0
+
+[[scoring.component]]
+[scoring.component.HBondAcceptors]
+name = "HBA"
+weight = 0 
+
+[[scoring.component]]
+[scoring.component.de]
+name = "de"
+weight = 0.5
+
+[[scoring.component]]
+[scoring.coponent.esol]
+name = "esol"
+weight = 0.5
