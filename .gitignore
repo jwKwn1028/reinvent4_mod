@@ -9,6 +9,8 @@ tags
 /data
 /exampleconfigs
 /generate
+/slurms
+
 # Coverage.py output
 .coverage
 htmlcov/

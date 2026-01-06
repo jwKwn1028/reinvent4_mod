@@ -21,7 +21,7 @@ sample_strategy = "multinomial"
 
 [learning_strategy]
 type = "dap"
-sigam = 128
+sigma = 128
 rate = 0.0001
 
 [diversity_filter]
