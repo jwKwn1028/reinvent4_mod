@@ -30,7 +30,7 @@ transform.type = "double_sigmoid"
 transform.low = 40.0
 transform.high = 70.0
 # # coef_div, symmetric slope, inverse proportional
-transform.coef_div = 75.0
+transform.coef_div = 300.0
 # # coef_si, lower value edge slope, proportional
 transform.coef_si = 150.0
 # # coef_se, higher value edge slope, proportional
@@ -61,36 +61,36 @@ transform.type = "sigmoid"
 transform.low = -3.0
 transform.high = 9.0
 # # transform k to adjust steepness
-transform.k = 0.4
+transform.k = 0.5
 
 
 
 ### ESOL ###
 
 
-# [[component]]
-# [component.DeepChemDMPNN]
-# [[component.DeepChemDMPNN.endpoint]]
-# name = "Water Solubility (ESOL)"
-# # # Another Pretrained DeepChem model for different property guiding
-# weight = 0.30
-# params.checkpoint_path = "generate/dc_ckpt/ws.ckpt"
-# params.transformer_path = "generate/chkpt/y_transformer/ws.joblib"
-# params.device = "cpu"
-# params.batch_size = 64
-# params.features_generators = "rdkit_desc_normalized"
-# params.depth = -1
-# params.ffn_hidden = -1
-# params.ffn_layers = -1
-# params.dropout_p = -1
-# params.bias = true
-# params.global_features_size = -1
-# transform.type = "reverse_sigmoid"
-# # # low, high for adjusting span
-# transform.low = -10.0
-# transform.high = 6.0
-# # # transform k to adjust steepness
-# transform.k = 0.4
+[[component]]
+[component.DeepChemDMPNN]
+[[component.DeepChemDMPNN.endpoint]]
+name = "Water Solubility (ESOL)"
+# # Another Pretrained DeepChem model for different property guiding
+weight = 0.30
+params.checkpoint_path = "generate/dc_ckpt/ws.ckpt"
+params.transformer_path = "generate/chkpt/y_transformer/ws.joblib"
+params.device = "cpu"
+params.batch_size = 64
+params.features_generators = "rdkit_desc_normalized, morgan"
+params.depth = -1
+params.ffn_hidden = -1
+params.ffn_layers = -1
+params.dropout_p = -1
+params.bias = true
+params.global_features_size = -1
+transform.type = "reverse_sigmoid"
+# # low, high for adjusting span
+transform.low = -10.0
+transform.high = 6.0
+# # transform k to adjust steepness
+transform.k = 0.5
 
 
 ### SA ###

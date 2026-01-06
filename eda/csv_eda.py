@@ -430,7 +430,7 @@ if __name__ == "__main__":
     else:
         base_name = os.path.splitext(os.path.basename(input_csv))[0]
         output_json = f"eda_{base_name}.json"
-    target_column = sys.argv[3] if len(sys.argv) > 3 else os.environ.get("EDA_TARGET_COLUMN", "smiles")
+    target_column = sys.argv[3] if len(sys.argv) > 3 else os.environ.get("EDA_TARGET_COLUMN", "SMILES")
     if os.path.exists(input_csv):
         analyze_csv_pandas(input_csv, output_json, target_column=target_column)
     else:
