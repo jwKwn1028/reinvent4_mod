@@ -16,6 +16,8 @@ randomize_smiles = true
 # to remove redundancies in the generated smiles
 unique_sequences = true
 temperature = 1.0
+sample_strategy = "multinomial"
+# sample_strategy = "beamsearch"
 
 [learning_strategy]
 type = "dap"
@@ -38,6 +40,7 @@ minsimilarity = 0.4
 # sample_size = 10
 
 [[stage]]
+# # First stage for de, logd, sa score 
 max_steps = 10000
 # # Mind the scoring function and adjust max_score accordingly
 max_score = 1.0
@@ -47,6 +50,12 @@ chkpt_file = "generate/chkpt/<chkpt_file_name>"
 
 [stage.diversity_filter]
 # # Add diversity filters from [diversity_filter] that is specific to this stage
+
+[stage.scoring]
+# [stage.scoring] can reference external scoring file
+file_name = "configs/de_logd_ws_sa.toml"
+file_type = "toml"
+
 
 
 

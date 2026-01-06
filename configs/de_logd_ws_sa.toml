@@ -1,0 +1,107 @@
+# For All DeepChem scoring, the params should MATCH the ckpt files, otherwise would BREAK, do not adjust hyperparameters
+[scoring]
+type = "geometric_mean"
+parallel = 1
+
+
+### DE ###
+
+
+[[scoring.component]]
+[scoring.component.DeepChemDMPNN]
+[[scoring.component.DeepChemDMPNN.endpoint]]
+name = "Dehydrogenation Enthalpy"
+# # Adjust weights for multiple guiding with RL
+weight = 0.30
+params.checkpoint_path = "generate/dc_ckpt/de.ckpt"
+params.transformer_path = "generate/chkpt/y_transformer/de.joblib"
+params.device = "cuda"
+params.batch_size = 256
+params.features_generators = "rdkit_desc_normalized"
+params.depth = 3
+params.ffn_hidden = 300
+params.ffn_layers = 3
+params.dropout_p = 0.1
+params.bias = true
+params.global_features_size = -1
+# double_sigmoid = window target
+transform.type = "double_sigmoid"
+# # set low and high for target DE value
+transform.low = 40.0
+transform.high = 70.0
+# # coef_div, symmetric slope, inverse proportional
+transform.coef_div = 75.0
+# # coef_si, lower value edge slope, proportional
+transform.coef_si = 150.0
+# # coef_se, higher value edge slope, proportional
+transform.coef_se = 150.0
+
+### Lipo ###
+
+
+[[scoring.component]]
+[scoring.component.DeepChemDMPNN]
+[[scoring.component.DeepChemDMPNN.endpoint]]
+name = "LogD (Lipo)"
+# # Another Pretrained DeepChem model for different property guiding
+weight = 0.30
+params.checkpoint_path = "generate/dc_ckpt/logd.ckpt"
+params.transformer_path = "generate/chkpt/y_transformer/logd.joblib"
+params.device = "cuda"
+params.batch_size = 256
+params.features_generators = "rdkit_desc_normalized"
+params.depth = 3
+params.ffn_hidden = 300
+params.ffn_layers = 3
+params.dropout_p = 0.1
+params.bias = true
+params.global_features_size = -1
+transform.type = "sigmoid"
+# # low, high for adjusting span
+transform.low = -3.0
+transform.high = 9.0
+# # transform k to adjust steepness
+transform.k = 0.4
+
+
+
+### ESOL ###
+
+
+[[scoring.component]]
+[scoring.component.DeepChemDMPNN]
+[[scoring.component.DeepChemDMPNN.endpoint]]
+name = "Water Solubility (ESOL)"
+# # Another Pretrained DeepChem model for different property guiding
+weight = 0.30
+params.checkpoint_path = "generate/dc_ckpt/ws.ckpt"
+params.transformer_path = "generate/chkpt/y_transformer/ws.joblib"
+params.device = "cuda"
+params.batch_size = 256
+params.features_generators = "rdkit_desc_normalized, morgan"
+params.depth = 3
+params.ffn_hidden = 300
+params.ffn_layers = 3
+params.dropout_p = 0.1
+params.bias = true
+params.global_features_size = -1
+transform.type = "reverse_sigmoid"
+# # low, high for adjusting span
+transform.low = -10.0
+transform.high = 6.0
+# # transform k to adjust steepness
+transform.k = 0.4
+
+
+### SA ###
+
+
+[[scoring.component]]
+[scoring.component.SAScore]
+[[scoring.component.SAScore.endpoint]]
+name = "Synthetic Accessibility score"
+weight = 0.1
+transform.type = "reverse_sigmoid"
+transform.low = 1
+transform.high = 10
+transform.k = 0.5

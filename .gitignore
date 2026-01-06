@@ -6,7 +6,9 @@ tags
 .idea
 /configs/config.json
 .env
-
+/data
+/exampleconfigs
+/generate
 # Coverage.py output
 .coverage
 htmlcov/
