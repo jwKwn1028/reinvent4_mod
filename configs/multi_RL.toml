@@ -1,12 +1,12 @@
 run_type = "staged_learning"
-device = "cuda:0"  
-json_out_config = "log/json_out" 
+device = "cpu"  
+json_out_config = "log/json_out.json" 
 tb_logdir = "log"
 seed = 42
 
 [parameters]
-prior_file = "priors/reinvent.prior"
-agent_file = "priors/reinvent.prior"
+prior_file = "model/prior/reinvent.prior"
+agent_file = "model/prior/reinvent.prior"
 summary_csv_prefix = "multi_RL_1_6_test"
 use_checkpoint = "false"
 purge_memories = "true"
@@ -46,16 +46,16 @@ max_steps = 10000
 max_score = 1.0
 min_steps = 50
 termination = "simple"
-chkpt_file = "generate/chkpt/<chkpt_file_name>"
+chkpt_file = "generate/chkpt/test_1_6.chkpt"
 
-[stage.diversity_filter]
+# [stage.diversity_filter]
 # # Add diversity filters from [diversity_filter] that is specific to this stage
+# # Do not use when [diversity_filter] is enabled
 
 [stage.scoring]
 # [stage.scoring] can reference external scoring file
-file_name = "configs/de_logd_ws_sa.toml"
-file_type = "toml"
-
+filename = "configs/de_logd_ws_sa.toml"
+filetype = "toml"
 
 
 

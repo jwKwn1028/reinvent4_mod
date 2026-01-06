@@ -82,6 +82,16 @@ from pydantic.dataclasses import dataclass
 import deepchem as dc
 from deepchem import feat
 from deepchem import trans
+try:
+    from deepchem.models import DMPNNModel
+except Exception:
+    try:
+        from deepchem.models.torch_models import DMPNNModel
+    except Exception:
+        try:
+            from deepchem.models.torch_models.dmpnn import DMPNNModel
+        except Exception:
+            DMPNNModel = None
 from .add_tag import add_tag
 from .component_results import ComponentResults
 from reinvent.scoring.utils import suppress_output
@@ -290,7 +300,13 @@ class DeepChemDMPNN:
         )
         os.makedirs(model_dir, exist_ok=True)
 
-        self.dc_model = dc.DMPNNModel(
+        if DMPNNModel is None:
+            raise ImportError(
+                "DeepChem DMPNNModel is not available in this environment. "
+                "Install a DeepChem build that includes the DMPNNModel."
+            )
+
+        self.dc_model = DMPNNModel(
             mode="regression",
             n_tasks=1,
             batch_size=self.batch_size,  # used by generator

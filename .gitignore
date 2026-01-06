@@ -10,7 +10,9 @@ tags
 /exampleconfigs
 /generate
 /slurms
-
+/model
+/log
+/log*
 # Coverage.py output
 .coverage
 htmlcov/
@@ -25,7 +27,7 @@ mprofile_*.dat
 /reinvent/models/reinvent_core/
 /reinvent_models/
 /build/
-
+*.csv
 # Notebooks
 .ipynb_checkpoints/
 *.ipynb
