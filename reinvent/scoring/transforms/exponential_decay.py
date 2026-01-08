@@ -1,6 +1,6 @@
 """
 Exponential decay, or exp(-x).
-
+Translated m
 For values x < 0, the output is 1.0 ("rectified" of "clamped" exponential decay).
 """
 
@@ -16,10 +16,10 @@ from .transform import Transform
 class Parameters:
     type: str
     k: float
+    m: float
 
-
-def expdecay(x, k=1.0):
-    return np.where(x < 0, 1, np.exp(-k * x))
+def expdecay(x, m, k=1.0):
+    return np.where(x < 0, 1, np.exp(-k * (x-m)))
 
 
 class ExponentialDecay(Transform, param_cls=Parameters):
@@ -27,7 +27,7 @@ class ExponentialDecay(Transform, param_cls=Parameters):
         super().__init__(params)
 
         self.k = params.k
-
+        self.m = params.m
         if self.k <= 0:
             raise ValueError(f"ExponentialDecay Transform: k must be > 0, got {self.k}")
 
