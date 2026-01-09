@@ -32,3 +32,5 @@ mprofile_*.dat
 .ipynb_checkpoints/
 *.ipynb
 /stat
+*err
+*out
