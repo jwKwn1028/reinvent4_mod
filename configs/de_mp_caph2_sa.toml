@@ -41,10 +41,10 @@ transform.coef_se = 150.0
 [component.MPP]
 
 [[component.MPP.endpoint]]
-name = "Melting point from the MPP model"
+name = "Melting point - MPP"
 weight = 0.45
 
-params.checkpoint_path = "generate/chkpt/mpp.ckpt"
+params.checkpoint_path = "generate/mpp_ckpt/mpp_mp.ckpt"
 params.device = "cpu"
 params.batch_size = 64
 params.num_workers = 0
@@ -57,7 +57,7 @@ params.output_index = 0
 transform.type = "ExponentialDecay"
 transform.m = 300
 # 300 kelvin or celsius
-transform.k = 0.5
+transform.k = 0.1
 
 
 ### caph2 ###
@@ -77,4 +77,4 @@ weight = 0.1
 transform.type = "reverse_sigmoid"
 transform.low = 1
 transform.high = 10
-transform.k = 0.3
+transform.k = 0.2

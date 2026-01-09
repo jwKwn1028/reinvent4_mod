@@ -1,7 +1,5 @@
 """
-Exponential decay, or exp(-x).
-Translated m
-For values x < 0, the output is 1.0 ("rectified" of "clamped" exponential decay).
+Exponential decay centered at m: exp(-k * |x - m|).
 """
 
 __all__ = ["ExponentialDecay"]
@@ -19,7 +17,7 @@ class Parameters:
     m: float
 
 def expdecay(x, m, k=1.0):
-    return np.where(x < 0, 1, np.exp(-k * (x-m)))
+    return np.exp(-k * np.abs(x-m))
 
 
 class ExponentialDecay(Transform, param_cls=Parameters):
@@ -33,5 +31,5 @@ class ExponentialDecay(Transform, param_cls=Parameters):
 
     def __call__(self, values) -> np.ndarray:
         values = np.array(values, dtype=np.float32)
-        transformed = expdecay(values, self.k)
+        transformed = expdecay(values, self.m, self.k)
         return transformed
