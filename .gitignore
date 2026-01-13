@@ -16,7 +16,7 @@ tags
 # Coverage.py output
 .coverage
 htmlcov/
-
+tb_logs/
 # Python memory_profiler output
 mprofile_*.dat
 
