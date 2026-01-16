@@ -54,7 +54,11 @@ def logging_listener(queue, filename: str, name: str = __name__, level=logging.I
     logger = logging.getLogger(name)
     logger.setLevel(level)
 
-    handler = logging.FileHandler(filename, mode="w+")
+    if filename:
+        handler = logging.FileHandler(filename, mode="w+")
+    else:
+        handler = logging.StreamHandler(sys.stderr)
+
     handler.setFormatter(FORMATTER)
     handler.setLevel(level)
 

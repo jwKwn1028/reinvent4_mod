@@ -123,7 +123,7 @@ def collate_dataset_fn(batch_data: List[Tuple[Any, Any, Any, Any]], model: Any):
     CRITICAL: Use batch_size=len(X) so generator yields exactly one batch containing
     all incoming items. Prevents silent sample drop when model.batch_size differs.
     """
-    X = [item[0] for item in batch_data]
+    X = [item[0] for item in batch_data]    
     Y = [item[1] for item in batch_data]
     W = [item[2] for item in batch_data]
     ids = [item[3] for item in batch_data]

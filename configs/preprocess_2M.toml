@@ -1,0 +1,15 @@
+input_csv_file = "data/2M.csv"
+output_smiles_file = "data/2M_filtered.smi"
+smiles_column = "smiles"  # Adjust if your CSV has a header, otherwise this is ignored for raw files
+separator = " "           # Adjust if your file is not comma-separated
+num_procs = 4
+chunk_size = 10000
+
+[filter]
+elements = ["P", "Si", "B", "Se", "As", "Ge"]
+
+# Recommended settings
+keep_isotope_molecules = true  # Keep [13C] etc.
+keep_stereo = true             # Keep @, @@
+uncharge = true                # Neutralize charges
+transforms = ["standard"]      # Apply standard normalizations
