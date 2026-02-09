@@ -163,3 +163,14 @@ Once you have a configuration and your license can be read, you can run the test
 ```
 $ pytest tests --json /path/to/config.json --device cuda
 ```
+
+
+Modifications
+-------------
+
+- Added `save_every_n_steps` to [parameters] in transfer learning.
+- Adjusted chemistry of reinvent to add Si, P in `reinvent/datapipeline/filters/elements.py` and `reinvent/chemistry/standardization/filter_registry.py`
+- Included custom scorers to use deepchem and unimol for molecular property predictions in `reinvent_plugins/components` and other LOHC specific scoring functions
+- Minor adjustments to the scoring functions in `reinvent/scoring/transforms`
+- Added multiple EDA and Visualiztion tools in `utils` for monitoring mulitple properties guided RL
+- Requires `unimol_tools` in directory root
