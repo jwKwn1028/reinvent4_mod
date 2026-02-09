@@ -172,5 +172,9 @@ Modifications
 - Adjusted chemistry of reinvent to add Si, P in `reinvent/datapipeline/filters/elements.py` and `reinvent/chemistry/standardization/filter_registry.py`
 - Included custom scorers to use deepchem and unimol for molecular property predictions in `reinvent_plugins/components` and other LOHC specific scoring functions
 - Minor adjustments to the scoring functions in `reinvent/scoring/transforms`
-- Added multiple EDA and Visualiztion tools in `utils` for monitoring mulitple properties guided RL
+- Added multiple EDA and Visualization tools in `utils` for monitoring mulitple properties guided RL
 - Requires `unimol_tools` in directory root
+- [ ] Custom Features for deepchem scoring
+- [ ] Enable RAscore plugins
+- [ ] Add Tutorials specific to my use case
+- [ ] Adjust weights to prevent reward hacking in multiple properti guided RL
