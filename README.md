@@ -2,6 +2,22 @@ REINVENT 4
 ==========
 
 
+MY_Modifications
+----------------
+
+- Installation with `environment.yml` and `install.py` - installation conflicts may still remain 
+- Added `save_every_n_steps` to `[parameters]` in transfer learning.
+- Adjusted chemistry of reinvent to add Si, P in `reinvent/datapipeline/filters/elements.py` and `reinvent/chemistry/standardization/filter_registry.py`
+- Included custom scorers to use deepchem and unimol for molecular property predictions in `reinvent_plugins/components` and other LOHC specific scoring functions
+- Minor adjustments to the scoring functions in `reinvent/scoring/transforms`
+- Added multiple EDA and Visualization tools in `utils` for monitoring mulitple properties guided RL
+- Requires `unimol_tools` in directory root
+- [ ] Custom Features for deepchem scoring, inside this repo
+- [ ] Enable RAscore plugins
+- [ ] Add Tutorials specific to my use case
+- [ ] Adjust weights to prevent reward hacking in multiple properties guided RL
+
+
 Description
 -----------
 
@@ -165,16 +181,3 @@ $ pytest tests --json /path/to/config.json --device cuda
 ```
 
 
-Modifications
--------------
-
-- Added `save_every_n_steps` to [parameters] in transfer learning.
-- Adjusted chemistry of reinvent to add Si, P in `reinvent/datapipeline/filters/elements.py` and `reinvent/chemistry/standardization/filter_registry.py`
-- Included custom scorers to use deepchem and unimol for molecular property predictions in `reinvent_plugins/components` and other LOHC specific scoring functions
-- Minor adjustments to the scoring functions in `reinvent/scoring/transforms`
-- Added multiple EDA and Visualization tools in `utils` for monitoring mulitple properties guided RL
-- Requires `unimol_tools` in directory root
-- [ ] Custom Features for deepchem scoring
-- [ ] Enable RAscore plugins
-- [ ] Add Tutorials specific to my use case
-- [ ] Adjust weights to prevent reward hacking in multiple properti guided RL
