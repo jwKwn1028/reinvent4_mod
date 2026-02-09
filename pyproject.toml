@@ -121,3 +121,7 @@ namespaces = true
 
 [tool.black]
 line-length = 100
+
+[tool.poetry]
+name = "reinvent4_mod"
+package-mode=false
