@@ -10,7 +10,7 @@ from __future__ import annotations
 __all__ = ["Learning"]
 import logging
 import time
-from typing import List, TYPE_CHECKING, Optional
+from typing import List, TYPE_CHECKING, Optional, Callable
 from abc import ABC, abstractmethod
 
 import torch
@@ -63,12 +63,16 @@ class Learning(ABC):
         tb_logdir: str = None,
         tb_isim: bool = False,
         intrinsic_penalty: IntrinsicPenalty | None = None,
+        save_every_n_steps: int = 0,
+        save_callback: Callable = None,
     ):
         """Setup of the common framework"""
 
         self.max_steps = max_steps
         self.stage_no = stage_no
         self.prior = prior
+        self.save_every_n_steps = save_every_n_steps
+        self.save_callback = save_callback
 
         # Seed the starting state, need update in every stage
         self._state = state
@@ -180,6 +184,10 @@ class Learning(ABC):
                 augmented_nll=augmented_nll,
                 loss=float(loss),
             )
+
+            if self.save_every_n_steps > 0 and (step + 1) % self.save_every_n_steps == 0:
+                if self.save_callback:
+                    self.save_callback(step + 1)
 
             if converged(mean_scores, step):
                 logger.info(f"Terminating early in {step = }")

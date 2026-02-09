@@ -13,6 +13,7 @@ class SectionParameters(GlobalConfig):
     summary_csv_prefix: str = "summary"
     use_checkpoint: bool = False
     purge_memories: bool = True
+    save_every_n_steps: Optional[int] = Field(0, ge=0)
     smiles_file: Optional[str] = None  # not Reinvent
     sample_strategy: Optional[str] = "multinomial"  # Transformer
     distance_threshold: int = 99999  # Transformer
@@ -61,6 +62,7 @@ class SectionStage(GlobalConfig):
     chkpt_file: Optional[str] = None
     termination: str = "simple"
     min_steps: Optional[int] = Field(50, ge=0)
+    save_every_n_steps: Optional[int] = Field(0, ge=0)
     scoring: dict = Field(default_factory=dict)  # validate in Scorer
     diversity_filter: Optional[SectionDiversityFilter] = None
 

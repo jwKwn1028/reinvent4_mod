@@ -131,7 +131,9 @@ def run_staged_learning(
     if inception is None and model_type == "Reinvent":
         logger.warning("Inception disabled but may speed up convergence")
 
-    packages = create_packages(reward_strategy, stages, rdkit_smiles_flags2)
+    packages = create_packages(
+        reward_strategy, stages, rdkit_smiles_flags2, parameters.save_every_n_steps
+    )
 
     summary_csv_prefix = parameters.summary_csv_prefix
 
@@ -144,6 +146,17 @@ def run_staged_learning(
         write_config(config.model_dump())
 
     with Handler() as handler:
+        def save_callback(step):
+            original_filename = handler.out_filename
+            if original_filename:
+                stem = original_filename.stem
+                suffix = original_filename.suffix
+                parent = original_filename.parent
+                new_name = parent / f"{stem}.{step}{suffix}"
+                handler.out_filename = new_name
+                handler.save()
+                handler.out_filename = original_filename
+
         for run, package in enumerate(packages):
             stage_no = run + 1
             csv_filename = f"{summary_csv_prefix}_{stage_no}.csv"
@@ -184,6 +197,8 @@ def run_staged_learning(
                 tb_logdir=logdir,
                 tb_isim=parameters.tb_isim,
                 intrinsic_penalty=intrinsic_penalty,
+                save_every_n_steps=package.save_every_n_steps,
+                save_callback=save_callback,
             )
 
             if hasattr(torch, device.type) and device.type != "cpu":

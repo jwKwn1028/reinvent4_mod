@@ -15,7 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 def create_packages(
-    reward_strategy: RL.RLReward, stages: List[SectionStage], rdkit_smiles_flags: dict
+    reward_strategy: RL.RLReward,
+    stages: List[SectionStage],
+    rdkit_smiles_flags: dict,
+    default_save_every_n_steps: int = 0,
 ) -> List[WorkPackage]:
     """Create work packages
 
@@ -26,12 +29,17 @@ def create_packages(
     :param reward_strategy: the reward strategy
     :param stages: the parameters for each work package
     :param rdkit_smiles_flags: RDKit flags for canonicalization
+    :param default_save_every_n_steps: global default for saving frequency
     :return: a list of work packages
     """
     packages = []
 
     for stage in stages:
         chkpt_filename = stage.chkpt_file
+        save_every_n_steps = stage.save_every_n_steps
+
+        if save_every_n_steps == 0:
+            save_every_n_steps = default_save_every_n_steps
 
         scoring_function = Scorer(stage.scoring)
 
@@ -62,6 +70,7 @@ def create_packages(
                 terminator(max_score, min_steps),
                 diversity_filter,
                 chkpt_filename,
+                save_every_n_steps,
             )
         )
 

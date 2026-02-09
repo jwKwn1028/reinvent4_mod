@@ -5,9 +5,9 @@ tb_logdir = "log"
 seed = 42
 
 [parameters]
-prior_file = "model/prior/reinvent.prior"
+prior_file = "model/agent/reinvent.prior"
 agent_file = "model/prior/reinvent.prior"
-summary_csv_prefix = "multi_RL_1_8_test"
+summary_csv_prefix = "multi_RL_1_19_test"
 use_checkpoint = "false"
 purge_memories = "true"
 # smiles_file = "<path/to/SMILES>"
@@ -46,7 +46,7 @@ max_steps = 10000
 max_score = 1.0
 min_steps = 50
 termination = "simple"
-chkpt_file = "generate/chkpt/test_1_8.chkpt"
+chkpt_file = "generate/chkpt/test_1_19.chkpt"
 
 # [stage.diversity_filter]
 # # Add diversity filters from [diversity_filter] that is specific to this stage
@@ -54,7 +54,7 @@ chkpt_file = "generate/chkpt/test_1_8.chkpt"
 
 [stage.scoring]
 # [stage.scoring] can reference external scoring file
-filename = "configs/de_mp_caph2_sa.toml"
+filename = "configs/scores.toml"
 filetype = "toml"
 
 

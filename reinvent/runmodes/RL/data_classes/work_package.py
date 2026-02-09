@@ -25,3 +25,4 @@ class WorkPackage:
     terminator: Callable
     diversity_filter: DiversityFilter = None
     out_state_filename: str = None
+    save_every_n_steps: int = 0

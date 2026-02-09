@@ -1,51 +1,22 @@
-import csv
-import sys
-import logging
-from collections import Counter
+"""
+CapH2 scoring component.
 
+Calculates the gravimetric hydrogen capacity (CapH2) of a molecule.
+"""
+
+from dataclasses import dataclass
+from typing import List, Optional, Dict
+import numpy as np
 from rdkit import Chem
-from rdkit.Chem import Descriptors, rdMolDescriptors
-from tqdm import tqdm
+from rdkit.Chem import Descriptors
+from pydantic import Field
 
+from reinvent_plugins.components.add_tag import add_tag
+from reinvent_plugins.components.component_results import ComponentResults
+from reinvent_plugins.normalize import normalize_smiles
 
-# =========================
-# Config
-# =========================
-OUTPUT_FILE = "CapH2_selections.csv"
-INPUT_FILES = [f"selection_canonical{i}.txt" for i in range(1, 6)]
+# --- Logic adapted from caph2.py ---
 
-# Log only the first N examples per failure type (still count all failures)
-FAILURE_LOG_LIMIT_PER_TYPE = 50
-LOG_FILE = "capH2_failures.log"
-
-
-# =========================
-# Logging (implements #4)
-# =========================
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler(LOG_FILE, mode="w", encoding="utf-8"),
-    ],
-)
-
-_failure_counts = Counter()
-_failure_logged = Counter()
-
-
-def log_failure(kind: str, smiles: str, err: Exception):
-    """Count failures and log only a limited number per kind."""
-    _failure_counts[kind] += 1
-    if _failure_logged[kind] < FAILURE_LOG_LIMIT_PER_TYPE:
-        logging.warning("Failed (%s): %s | %s", kind, smiles, repr(err))
-        _failure_logged[kind] += 1
-
-
-# =========================
-# Core chemistry
-# =========================
 def pred_rich_form_and_changed_bonds(poor_mol: Chem.Mol):
     """
     Create "rich" form by:
@@ -54,10 +25,6 @@ def pred_rich_form_and_changed_bonds(poor_mol: Chem.Mol):
 
     Returns:
       rich_mol, rich_smiles, n_changed_bonds
-
-    Notes:
-      - This matches your original logic, but avoids SMILES round-trips (implements #5).
-      - If you want aromatic-only hydrogenation, change the bond-selection logic accordingly.
     """
     try:
         temp = Chem.Mol(poor_mol)  # copy
@@ -84,102 +51,57 @@ def pred_rich_form_and_changed_bonds(poor_mol: Chem.Mol):
     return rich_mol, rich_smi, n_changed
 
 
-def calc_capH2_with_diagnostics(poor_smi: str):
+def calc_capH2(poor_smi: str) -> float:
     """
-    Compute CapH2 (%) and diagnostics (implements #1).
-
-    Returns:
-      dict of outputs, or None if failed
+    Compute CapH2 (%).
+    Returns the CapH2 value or NaN if calculation fails.
     """
-    poor_smi = poor_smi.strip()
+    poor_smi = (poor_smi or "").strip()
     if not poor_smi:
-        return None
+        return float("nan")
 
     try:
         poor_mol = Chem.MolFromSmiles(poor_smi)
         if poor_mol is None:
-            raise ValueError("MolFromSmiles returned None")
+            return float("nan")
 
         rich_mol, rich_smi, n_changed = pred_rich_form_and_changed_bonds(poor_mol)
 
         mw_poor = Descriptors.MolWt(poor_mol)
         mw_rich = Descriptors.MolWt(rich_mol)
         if mw_rich <= 0:
-            raise ValueError(f"Invalid rich MolWt: {mw_rich}")
+            return float("nan")
 
         capH2 = (mw_rich - mw_poor) / mw_rich * 100.0
+        return capH2
 
-        # Diagnostics (#1)
-        diag = {
-            "SMILES_poor": poor_smi,
-            "CapH2_%": round(capH2, 2),
-            "MolWt_poor": round(mw_poor, 4),
-            "MolWt_rich": round(mw_rich, 4),
-            "dMolWt": round(mw_rich - mw_poor, 4),
-            "n_ring_double_to_single": n_changed,
-            "NumHeavyAtoms": rdMolDescriptors.CalcNumHeavyAtoms(poor_mol),
-            "NumRings": rdMolDescriptors.CalcNumRings(poor_mol),
-            "NumAromaticRings": rdMolDescriptors.CalcNumAromaticRings(poor_mol),
-            "SMILES_rich": rich_smi,
-        }
-        return diag
-
-    except Exception as e:
-        # Log failures (#4)
-        log_failure("capH2_calc", poor_smi, e)
-        return None
+    except Exception:
+        return float("nan")
 
 
-# =========================
-# Main: stream processing (also helps speed/memory)
-# =========================
-HEADER = [
-    "SMILES_poor",
-    "CapH2_%",
-    "MolWt_poor",
-    "MolWt_rich",
-    "dMolWt",
-    "n_ring_double_to_single",
-    "NumHeavyAtoms",
-    "NumRings",
-    "NumAromaticRings",
-    "SMILES_rich",
-]
+# --- Component Definition ---
 
-# Write header
-with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as out_csv:
-    writer = csv.DictWriter(out_csv, fieldnames=HEADER)
-    writer.writeheader()
+@add_tag("__parameters")
+@dataclass
+class Parameters:
+    """Parameters for the CapH2 component. No parameters needed."""
+    pass
 
-# Process each file
-for input_file in INPUT_FILES:
-    logging.info("Processing %s ...", input_file)
+@add_tag("__component")
+class CompCapH2:
+    """
+    CapH2 scoring component.
+    """
 
-    try:
-        with open(input_file, "r", encoding="utf-8") as infile, open(
-            OUTPUT_FILE, "a", newline="", encoding="utf-8"
-        ) as out_csv:
-            writer = csv.DictWriter(out_csv, fieldnames=HEADER)
+    def __init__(self, params: Parameters):
+        self.smiles_type = "rdkit_smiles"
+        pass
 
-            # Stream line-by-line (no full list; improves speed/memory)
-            for line in tqdm(infile, desc=input_file):
-                smi = line.strip()
-                if not smi:
-                    continue
-
-                row = calc_capH2_with_diagnostics(smi)
-                if row is not None:
-                    writer.writerow(row)
-
-    except FileNotFoundError:
-        logging.warning("File not found: %s (skipping)", input_file)
-    except Exception as e:
-        log_failure("file_processing", input_file, e)
-
-# Summary
-logging.info("Done. Output: %s", OUTPUT_FILE)
-if _failure_counts:
-    logging.info("Failure counts (all): %s", dict(_failure_counts))
-    logging.info("Failure log (sampled) written to: %s", LOG_FILE)
-else:
-    logging.info("No failures logged.")
+    @normalize_smiles
+    def __call__(self, smiles: List[str]) -> ComponentResults:
+        scores = []
+        for smi in smiles:
+            score = calc_capH2(smi)
+            scores.append(score)
+        
+        return ComponentResults([np.array(scores, dtype=float)])

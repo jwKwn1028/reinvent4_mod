@@ -3,54 +3,65 @@
 # This is an example how to use the ExternalProcess scoring component using
 # RASCore.  The scripts expects a list of SMILES from stdin and will
 # write a JSON string to stdout.
-#
-# Retrosynthetic Accessibility Score (https://doi.org/10.1039/D0SC05401A)
-# with code from https://github.com/reymond-group/RAscore.
-#
-# Setup shown for scoring file include feature: scoring.filename
-#
-# [[component.ExternalProcess.endpoint]]
-# name = "RAScore"
-# weight = 0.6
-#
-# # The software requires a specific virtual environment based on Python 3.7/8
-# # The --no-capture-output is necessary to pass through stdout from REINVENT4
-# # In multi endpoint scenarious replace executable with "/dev/null" in all
-# # endpoints except the first
-# params.executable = "/home/user/miniconda3/condabin/mamba"
-# params.args = "run --no-capture-output -n rascore /home/user/projects/RAScore/run-rascore.py
-# params.property = "RAScore"
-# # No transform needed as score is already between 0 and 1
-#
-
 
 import sys
 import json
+import os
 
-from RAscore import RAscore_NN
+# Redirect stdout to stderr immediately to prevent ANY import logs or 
+# initialization logs from corrupting the JSON output.
+# This is critical for TensorFlow/Keras.
+original_stdout = sys.stdout
+sys.stdout = sys.stderr
 
+try:
+    # Import here (while stdout is redirected)
+    from RAscore import RAscore_NN
+    
+    # Path to your model
+    RASCORE_MODEL = "/home/intern_01/jwkwon/rascore/RAscore/RAscore/models/models/DNN_chembl_fcfp_counts/model.h5"
 
-# Created from default model in the repository:
-# from tensorflow import keras
-# model = keras.models.load_model("models/DNN_chembl_fcfp_counts/model.tf")
-# model.save("/home/user/projects/RAScore/new_tf_2.5")
-RASCORE_MODEL = "/home/user/projects/RAScore/new_tf_2.5"
+    # Initialize scorer
+    # If this fails, it prints to stderr and exits non-zero (caught by try/except)
+    nn_scorer = RAscore_NN.RAScorerNN(RASCORE_MODEL)
 
-smilies = [smiles.strip() for smiles in sys.stdin]
+except Exception as e:
+    print(f"Error initializing RAscore: {e}", file=sys.stderr)
+    sys.exit(1)
 
-# Everything from here to END is specific to the scorer
+finally:
+    # We keep stdout redirected until we are ready to print JSON
+    pass
 
-# The default model will give a warning regarding the tensorflow version
-# nn_scorer = RAscore_NN.RAScorerNN()
-nn_scorer = RAscore_NN.RAScorerNN(RASCORE_MODEL)
+# Read SMILES from stdin
+try:
+    # Read all lines first to know count
+    lines = sys.stdin.readlines()
+    smilies = [line.strip() for line in lines]
+except Exception as e:
+    print(f"Error reading stdin: {e}", file=sys.stderr)
+    sys.exit(1)
+
 scores = []
 
-for smiles in smilies:
-    score = nn_scorer.predict(smiles)  # returns numpy.float32
-    scores.append(float(score))
+# Score loop
+for i, smiles in enumerate(smilies):
+    try:
+        if not smiles:
+            # Empty line? Return NaN or 0
+            scores.append(0.0) 
+            continue
 
-# END
+        score = nn_scorer.predict(smiles)  # returns numpy.float32
+        scores.append(float(score))
+        
+    except Exception as e:
+        print(f"Error predicting for SMILES #{i} ({smiles}): {e}", file=sys.stderr)
+        # CRITICAL: Append NaN so the list length matches input length
+        scores.append(float("nan"))
 
+# Restore stdout for JSON output
+sys.stdout = original_stdout
 
 # Format the JSON string for REINVENT4 and write it to stdout
 data = {"version": 1, "payload": {"RAScore": scores}}
