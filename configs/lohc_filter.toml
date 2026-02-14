@@ -1,0 +1,30 @@
+# LOHC Filter Scoring Configuration
+# Uses CompLOHCFilter to score molecules: 1.0 if pass, -1.0 if fail.
+
+type = "geometric_mean"
+
+[[component]]
+[component.CompLOHCFilter]
+
+[[component.CompLOHCFilter.endpoint]]
+name = "LOHC Filter"
+weight = 1.0
+
+# Parameters (optional, defaults shown)
+# params.atom_min = 1
+# params.atom_max = 100
+# params.ring_min = 1
+# params.ring_max = 9
+# params.count_aromatic_as_double = true
+# params.require_single_fragment = true
+# params.require_neutral = true
+# params.max_hbd = 1
+# params.max_tpsa = 50.0
+# params.min_rotb = 0
+# params.max_rotb = 9
+
+# Transform to map the -1/1 output to 0/1 for REINVENT
+transform.type = "value_mapping"
+[component.CompLOHCFilter.endpoint.transform.mapping]
+"1.0" = 1.0
+"-1.0" = 0.0

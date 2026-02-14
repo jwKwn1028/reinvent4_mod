@@ -1,0 +1,31 @@
+# UniMol Scoring Configuration
+# Reference: configs/de_mp_caph2_sa.toml
+
+type = "geometric_mean" 
+
+[[component]]
+[component.CompUnimol]
+
+[[component.CompUnimol.endpoint]]
+name = "UniMol Score"
+weight = 1.0
+
+# Parameters matching the Parameters dataclass in comp_unimol.py
+# IMPORTANT: Adjust model_dir to point to the directory containing your 'model_0.pth'
+params.model_dir = "/path/to/your/model_dir" 
+params.model_name = "unimolv2"
+params.model_size = "84m"
+params.batch_size = 32
+params.use_cuda = true
+# Scaler parameters used during training (mean and std of the target)
+params.scaler_mean = 0.0
+params.scaler_std = 1.0
+# Path to unimol_tools directory if not in python path
+params.unimol_tools_path = "unimol_tools"
+
+# Transformation Example (Sigmoid)
+# Adjust low/high/k based on the range of your model's output
+transform.type = "sigmoid"
+transform.high = 100.0
+transform.low = 0.0
+transform.k = 0.5

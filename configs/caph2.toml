@@ -1,0 +1,23 @@
+# CapH2 Scoring Configuration
+# Uses CompCapH2 to calculate gravimetric hydrogen capacity (%).
+
+type = "geometric_mean"
+
+[[component]]
+[component.CompCapH2]
+
+[[component.CompCapH2.endpoint]]
+name = "Gravimetric Hydrogen Capacity"
+weight = 1.0
+
+# No parameters needed for CompCapH2
+
+# Transform Example: Sigmoid
+# Encouraging higher CapH2 values.
+# low: 5.0 (5%) -> low score
+# high: 8.0 (8%) -> high score
+# k: 0.5 (steepness)
+transform.type = "sigmoid"
+transform.high = 8.0
+transform.low = 5.0
+transform.k = 0.5
