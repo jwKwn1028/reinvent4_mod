@@ -1023,7 +1023,7 @@ def NNDataLoader(
         collate_fn=collate_fn,
         drop_last=drop_last,
         # num_workers=4,
-        pin_memory=True,
+        pin_memory=False,
         sampler=sampler,
         generator=g,
     )

@@ -13,8 +13,8 @@ class SectionParameters(GlobalConfig):
     summary_csv_prefix: str = "summary"
     use_checkpoint: bool = False
     purge_memories: bool = True
-    save_every_n_steps: Optional[int] = Field(0, ge=0)
     smiles_file: Optional[str] = None  # not Reinvent
+    save_every_n_steps: Optional[int] = Field(0, ge=0)
     sample_strategy: Optional[str] = "multinomial"  # Transformer
     distance_threshold: int = 99999  # Transformer
     batch_size: int = 100

@@ -1,12 +1,14 @@
-import logging
 from typing import List
+import logging
 
-from rdkit.Chem import AllChem, MolToSmiles, SaltRemover, rdmolops
+from rdkit.Chem import AllChem, MolToSmiles
+from rdkit.Chem import SaltRemover
+from rdkit.Chem import rdmolops
 from rdkit.Chem.rdmolfiles import MolFromSmarts, MolFromSmiles
 from rdkit.Chem.rdmolops import RemoveHs
 
 from reinvent.chemistry.standardization.filter_types_enum import FilterTypesEnum
-from reinvent.models.reinvent.models.vocabulary import REGEXP_ORDER, split_by
+from reinvent.models.reinvent.models.vocabulary import split_by, REGEXP_ORDER
 
 logger = logging.getLogger(__name__)
 
@@ -70,9 +72,7 @@ class FilterRegistry:
         return maxmol
 
     def _remove_hydrogens(self, mol):
-        return RemoveHs(
-            mol, implicitOnly=False, updateExplicitCount=False, sanitize=True
-        )
+        return RemoveHs(mol, implicitOnly=False, updateExplicitCount=False, sanitize=True)
 
     def _remove_salts(self, mol):
         return SaltRemover.SaltRemover().StripMol(mol, dontRemoveEverything=True)
@@ -80,8 +80,7 @@ class FilterRegistry:
     def _neutralise_charges(self, mol, reactions=None):
         if reactions is None:
             reactions = [
-                (MolFromSmarts(x), MolFromSmiles(y, False))
-                for x, y in NEUTRALIZE_PATTERNS
+                (MolFromSmarts(x), MolFromSmiles(y, False)) for x, y in NEUTRALIZE_PATTERNS
             ]
 
         for i, (reactant, product) in enumerate(reactions):
@@ -94,9 +93,7 @@ class FilterRegistry:
     def _general_cleanup(self, mol):
         rdmolops.Cleanup(mol)
         rdmolops.SanitizeMol(mol)
-        mol = rdmolops.RemoveHs(
-            mol, implicitOnly=False, updateExplicitCount=False, sanitize=True
-        )
+        mol = rdmolops.RemoveHs(mol, implicitOnly=False, updateExplicitCount=False, sanitize=True)
 
         return mol
 
@@ -129,9 +126,7 @@ class FilterRegistry:
             elements = DEFAULT_ELEMENTS
 
         if mol:
-            valid_elements = all(
-                [atom.GetAtomicNum() in elements for atom in mol.GetAtoms()]
-            )
+            valid_elements = all([atom.GetAtomicNum() in elements for atom in mol.GetAtoms()])
 
             if valid_elements:
                 return mol

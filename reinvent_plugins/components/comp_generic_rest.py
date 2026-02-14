@@ -60,7 +60,7 @@ class REST:
         scores = []
 
         for url, port, endpoint, pred_id, pred_vers, header in zip(
-            smiles_list,
+            smilies_list,
             self.server_urls,
             self.server_ports,
             self.server_endpoints,

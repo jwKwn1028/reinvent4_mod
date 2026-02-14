@@ -205,7 +205,7 @@ def _predict_from_dataframe(
         shuffle=False,
         num_workers=num_workers,
         collate_fn=collate_infer,
-        pin_memory=torch.cuda.is_available(),
+        pin_memory=False,
         persistent_workers=(num_workers > 0),
     )
 

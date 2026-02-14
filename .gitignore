@@ -1,12 +1,9 @@
 __pycache__
-/Final
-/notebook
 *.pyc
 package.json
 .vscode
 tags
 .idea
-/configs
 /configs/config.json
 .env
 /data
@@ -16,10 +13,7 @@ tags
 /model
 /log
 /log*
-/logs
-/log_0
 # Coverage.py output
-# 
 .coverage
 htmlcov/
 tb_logs/
@@ -38,13 +32,10 @@ mprofile_*.dat
 .ipynb_checkpoints/
 *.ipynb
 /stat
-*err
-*out
+*.err
+*.out
+/out
+/unimol_tools
+vis/
+*.pt
 *.smi
-.csv
-/unimol_tools/unimol_tools/weights
-/out_29
-/tests
-/split
-/eda
-/log*

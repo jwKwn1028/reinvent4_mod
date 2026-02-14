@@ -1,0 +1,15 @@
+[io]
+# IMPORTANT: Point to the filtered output from the previous step
+smiles_file = "data/2M_filtered.smi"
+model_file = "1_19.model"
+
+[network]
+num_layers = 8
+layer_size = 512
+dropout = 0.0
+layer_normalization = false
+standardize = false
+
+[metadata]
+data_source = "2M_lohc.smi"
+comment = "model created from default reinvent chemistry, but might have different regex"

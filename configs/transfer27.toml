@@ -1,0 +1,62 @@
+run_type = "staged_learning"
+device = "cuda:0"  
+json_out_config = "log/json_out.json" 
+tb_logdir = "log"
+seed = 42
+
+[parameters]
+prior_file = "generate/1_27/1_27.1000.chkpt"
+agent_file = "generate/1_27/1_27.1000.chkpt"
+summary_csv_prefix = "1_2729_transfer"
+use_checkpoint = "true"
+purge_memories = "true"
+save_every_n_steps = 100
+# smiles_file = "<path/to/SMILES>"
+batch_size = 100
+randomize_smiles = true
+# to remove redundancies in the generated smiles
+unique_sequences = false
+temperature = 1.35
+sample_strategy = "multinomial"
+# sample_strategy = "beamsearch"
+
+[learning_strategy]
+type = "dap"
+sigma = 128
+rate = 0.00005
+
+[diversity_filter]
+type = "ScaffoldSimilarity"
+# type = "PenalizeSameSmiles"
+bucket_size = 25
+minscore = 0.4
+minsimilarity = 0.4
+# # For PenalizeSameSmiles
+# penalty_multiplier = 0.5
+
+[inception]
+# # May add good smiles here to seed memory
+# smiles_file = "generate/incept/<file_name>"
+# memory_size = 50
+# sample_size = 10
+
+[[stage]]
+# # First stage for de, logd, sa score 
+max_steps = 12000
+# # Mind the scoring function and adjust max_score accordingly
+max_score = 0.9
+min_steps = 50
+termination = "simple"
+chkpt_file = "generate/1_27_transfer/1_27.chkpt"
+
+# [stage.diversity_filter]
+# # Add diversity filters from [diversity_filter] that is specific to this stage
+# # Do not use when [diversity_filter] is enabled
+
+[stage.scoring]
+# [stage.scoring] can reference external scoring file
+filename = "configs/scores.toml"
+filetype = "toml"
+
+
+

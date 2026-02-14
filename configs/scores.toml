@@ -1,0 +1,151 @@
+type = "geometric_mean"
+parallel = 1
+
+### DE ###
+### Mean and Std Must be calculated explicitly from train
+[[component]]
+[component.CompUnimol]
+[[component.CompUnimol.endpoint]]
+name = "DE"
+weight = 0.2
+params.model_dir = "generate/unimol/de_unimol.pth" 
+params.model_name = "unimolv2"
+params.model_size = "84m"
+params.batch_size = 64
+params.use_cuda = true
+params.scaler_mean = 73.979027
+params.scaler_std = 18.254017
+params.unimol_tools_path = "unimol_tools"
+# 40 70 window
+transform.type = "doublesigmoid"
+transform.high = 60.0
+transform.low = 40.0
+transform.coef_div = 100.0
+transform.coef_si = 150.0
+transform.coef_se = 20.0
+
+
+### MP ###
+### Mean and Std must be calculated explicitly from train
+[[component]]
+[component.CompUnimol]
+[[component.CompUnimol.endpoint]]
+name = "MP"
+weight = 0.2
+params.model_dir = "generate/unimol/mp_unimol.pth" 
+params.model_name = "unimolv2"
+params.model_size = "84m"
+params.batch_size = 64
+params.use_cuda = true
+params.scaler_mean = 388.036957
+params.scaler_std = 62.264420
+# Lower than 300K
+params.unimol_tools_path = "unimol_tools"
+transform.type = "reversesigmoid"
+transform.high = 600.0
+transform.low = 0
+transform.k = 3
+
+
+
+[[component]]
+[component.MPP]
+[[component.MPP.endpoint]]
+name = "BP"
+weight = 0.25
+params.checkpoint_path = "generate/mpp_ckpt/mpp_bp.ckpt"
+params.device = "cuda"
+params.batch_size = 64
+params.num_workers = 0
+params.max_length = 200
+params.img_dim = 256
+params.tokenizer_name = "DeepChem/ChemBERTa-77M-MLM"
+params.output_index = 0
+# Higher than 350 celsius
+transform.type = "sigmoid"
+transform.high = 727
+transform.low = -27
+transform.k = 0.3
+
+
+### caph2 ###
+[[component]]
+[component.CompCapH2]
+[[component.CompCapH2.endpoint]]
+name = "CapH2"
+weight = 0.2
+# No parameters needed for CompCapH2
+
+transform.type = "sigmoid"
+transform.high = 9.0
+transform.low = 0.0
+transform.k = 0.5
+
+
+
+
+### SA ###
+[[component]]
+[component.SAScore]
+[[component.SAScore.endpoint]]
+name = "SA"
+weight = 0.1
+transform.type = "reversesigmoid"
+transform.low = 0
+transform.high = 12
+transform.k = 0.5
+
+
+
+### LOHC Filter ###
+[[component]]
+[component.CompLOHCFilter]
+[[component.CompLOHCFilter.endpoint]]
+name = "LOHC"
+weight = 0.075
+
+
+
+
+# ###RAscore###
+# [[component]]
+# [component.ExternalProcess]
+# [[component.ExternalProcess.endpoint]]
+# name = "RAScore"
+# weight = 0.075
+# params.executable = "/home/intern_01/miniconda3/envs/rascore/bin/python"
+# params.args = "support/run-rascore.py"
+# params.property = "RAScore"
+
+
+[[component]]
+[component.NKetones]
+[[component.NKetones.endpoint]]
+name = "NKetones"
+weight = 0.025
+transform.type = "valuemapping"
+[component.NKetones.endpoint.transform.mapping]
+"0.0" = 0.0
+"0" = 0.0
+"0." = 0.0
+"1.0" = 0.5
+"1." = 0.5
+"1" = 0.5
+"2.0" = 1.0
+"2" = 1.0
+"3.0" = 1.0
+"3" = 1.0
+"4.0" = 1.0
+"4" = 1.0
+"5.0" = 1.0
+"5" = 1.0
+"6.0" = 1.0
+"6" = 1.0
+"7.0" = 1.0
+"7" = 1.0
+"8.0" = 1.0
+"8" = 1.0
+"9.0" = 1.0
+"9" = 1.0
+"10.0" = 1.0
+"10" = 1.0
