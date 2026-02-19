@@ -22,6 +22,24 @@ transform.high = 60.0
 transform.low = 40.0
 transform.k = 0.4
 
+### FP ###
+[[component]]
+[component.CompUnimol]
+[[component.CompUnimol.endpoint]]
+name = "FP"
+weight = 0.2
+params.model_dir = "generate/unimol/de_unimol.pth"
+params.model_name = "unimolv2"
+params.model_size = "84m"
+params.batch_size = 64
+params.use_cuda = true
+params.scaler_mean = 336.4485778808594
+params.scaler_std = 68.4540023803711
+params.unimol_tools_path = "unimol_tools"
+transform.type = "sigmoid"
+transform.high = 666.3
+transform.low = 0
+transform.k = 4
 
 ### KETONES ###
 [[component]]
@@ -90,7 +108,7 @@ transform.high = 10.0
 transform.low = 0.0
 transform.k = 3
 
-### FP ###
+
 
 
 
