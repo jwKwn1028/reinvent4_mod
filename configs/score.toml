@@ -7,7 +7,7 @@ parallel = 1
 [component.CompUnimol]
 [[component.CompUnimol.endpoint]]
 name = "DE"
-weight = 0.2
+weight = 0.25
 params.model_dir = "generate/unimol/de_unimol.pth"
 params.model_name = "unimolv2"
 params.model_size = "84m"
@@ -27,8 +27,8 @@ transform.k = 0.4
 [component.CompUnimol]
 [[component.CompUnimol.endpoint]]
 name = "FP"
-weight = 0.2
-params.model_dir = "generate/unimol/de_unimol.pth"
+weight = 0.25
+params.model_dir = "generate/unimol/fp_unimol.pth"
 params.model_name = "unimolv2"
 params.model_size = "84m"
 params.batch_size = 64
@@ -46,7 +46,7 @@ transform.k = 4
 [component.NKetones]
 [[component.NKetones.endpoint]]
 name = "NKetones"
-weight = 0.025
+weight = 0.020
 transform.type = "valuemapping"
 [component.NKetones.endpoint.transform.mapping]
 "0.0" = 0.0

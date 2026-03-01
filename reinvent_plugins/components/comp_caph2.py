@@ -17,64 +17,38 @@ from reinvent_plugins.normalize import normalize_smiles
 
 # --- Logic adapted from caph2.py ---
 
-
-
-# def pred_rich_form_and_changed_bonds(poor_mol: Chem.Mol):
-#     """
-#     Create "rich" form by:
-#       - Kekulize
-#       - Turn DOUBLE bonds in rings into SINGLE bonds
-
-#     Returns:
-#       rich_mol, rich_smiles, n_changed_bonds
-#     """
-#     try:
-#         temp = Chem.Mol(poor_mol)  # copy
-#         Chem.Kekulize(temp, clearAromaticFlags=True)  # in-place on copy
-#     except Exception as e:
-#         raise RuntimeError(f"Kekulize failed: {e}") from e
-
-#     rw = Chem.RWMol(temp)
-#     n_changed = 0
-
-#     for bond in rw.GetBonds():
-#         if bond.GetBondType() == Chem.rdchem.BondType.DOUBLE and bond.IsInRing():
-#             bond.SetBondType(Chem.rdchem.BondType.SINGLE)
-#             n_changed += 1
-
-#     rich_mol = rw.GetMol()
-
-#     try:
-#         Chem.SanitizeMol(rich_mol)  # ensures valence/Hs are consistent
-#     except Exception as e:
-#         raise RuntimeError(f"Sanitize rich form failed: {e}") from e
-
-#     rich_smi = Chem.MolToSmiles(rich_mol, canonical=True)
-#     return rich_mol, rich_smi, n_changed
-
-
-
 def pred_rich_form_and_changed_bonds(poor_mol: Chem.Mol):
-    aromatic_bond_ids = set()
-    for b in poor_mol.GetBonds():
-        if b.GetIsAromatic() and b.IsInRing():
-            aromatic_bond_ids.add(b.GetIdx())
+    """
+    Create "rich" form by:
+      - Kekulize
+      - Turn DOUBLE bonds in rings into SINGLE bonds
 
-    temp = Chem.Mol(poor_mol)
-    Chem.Kekulize(temp, clearAromaticFlags=True)
+    Returns:
+      rich_mol, rich_smiles, n_changed_bonds
+    """
+    try:
+        temp = Chem.Mol(poor_mol)  # copy
+        Chem.Kekulize(temp, clearAromaticFlags=True)  # in-place on copy
+    except Exception as e:
+        raise RuntimeError(f"Kekulize failed: {e}") from e
 
     rw = Chem.RWMol(temp)
     n_changed = 0
-    for b in rw.GetBonds():
-        if b.GetIdx() in aromatic_bond_ids and b.GetBondType() == Chem.rdchem.BondType.DOUBLE:
-            b.SetBondType(Chem.rdchem.BondType.SINGLE)
+
+    for bond in rw.GetBonds():
+        if bond.GetBondType() == Chem.rdchem.BondType.DOUBLE and bond.IsInRing():
+            bond.SetBondType(Chem.rdchem.BondType.SINGLE)
             n_changed += 1
 
     rich_mol = rw.GetMol()
-    Chem.SanitizeMol(rich_mol)
+
+    try:
+        Chem.SanitizeMol(rich_mol)  # ensures valence/Hs are consistent
+    except Exception as e:
+        raise RuntimeError(f"Sanitize rich form failed: {e}") from e
+
     rich_smi = Chem.MolToSmiles(rich_mol, canonical=True)
     return rich_mol, rich_smi, n_changed
-
 
 
 def calc_capH2(poor_smi: str) -> float:
