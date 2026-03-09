@@ -7,7 +7,7 @@ parallel = 1
 [component.CompUnimol]
 [[component.CompUnimol.endpoint]]
 name = "DE"
-weight = 0.24
+weight = 0.16
 params.model_dir = "generate/unimol/de_unimol.pth"
 params.model_name = "unimolv2"
 params.model_size = "84m"
@@ -27,7 +27,7 @@ transform.k = 0.4
 [component.CompUnimol]
 [[component.CompUnimol.endpoint]]
 name = "FP"
-weight = 0.275
+weight = 0.18
 params.model_dir = "generate/unimol/fp_unimol.pth"
 params.model_name = "unimolv2"
 params.model_size = "84m"
@@ -80,7 +80,7 @@ transform.type = "valuemapping"
 [component.CompUnimol]
 [[component.CompUnimol.endpoint]]
 name = "MP"
-weight = 0.2375
+weight = 0.17
 params.model_dir = "generate/unimol/mp_unimol.pth"
 params.model_name = "unimolv2"
 params.model_size = "84m"
@@ -99,33 +99,41 @@ transform.k = 4
 [component.CompUnimol]
 [[component.CompUnimol.endpoint]]
 name = "VP"
-weight = 0.1
+weight = 0.16
 params.model_dir = "generate/unimol/vp_unimol.pth"
 params.model_name = "unimolv2"
 params.model_size = "84m"
 params.use_cuda = true
 params.scaler_mean = -1.5296461582183838
 params.scaler_std = 3.6220619678497314
-
+transform.type = "reversesigmoid"
+transform.high = 0.0
+transform.low = -10.0
+transform.k = 1
 
 [[component]]
 [component.CompUnimol]
 [[component.CompUnimol.endpoint]]
 name = "VS"
-weight = 0.1
+weight = 0.16
 params.model_dir = "generate/unimol/vs_unimol.pth"
 params.model_name = "unimolv2"
 params.model_size = "84m"
 params.use_cuda = true
 params.scaler_mean = 2.8857595920562744
 params.scaler_std = 3.875796318054199
+transform.type = "reversesigmoid"
+transform.high = 16.0
+transform.low = 1.0
+transform.k = 1.5
+
 
 ### caph2 ###
 [[component]]
 [component.CompCapH2]
 [[component.CompCapH2.endpoint]]
 name = "CapH2"
-weight = 0.235
+weight = 0.17
 # No parameters needed for CompCapH2 (direct calculation from rdkit)
 transform.type = "sigmoid"
 transform.high = 10.0

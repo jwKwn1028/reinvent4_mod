@@ -7,10 +7,10 @@ seed = 42
 [parameters]
 prior_file = "model/prior/reinvent.prior"
 agent_file = "model/agent/reinvent.prior"
-summary_csv_prefix = "2_14_init_42"
+summary_csv_prefix = "3_9_init_42"
 use_checkpoint = "true"
 purge_memories = "true"
-save_every_n_steps = 100
+save_every_n_steps = 1000
 # smiles_file = "<path/to/SMILES>"
 batch_size = 100
 randomize_smiles = true
@@ -23,7 +23,7 @@ sample_strategy = "multinomial"
 [learning_strategy]
 type = "dap"
 sigma = 128
-rate = 0.00006
+rate = 0.00008
 
 [diversity_filter]
 type = "ScaffoldSimilarity"
@@ -42,12 +42,12 @@ minsimilarity = 0.4
 
 [[stage]]
 # # First stage for de, logd, sa score
-max_steps = 15000
+max_steps = 8000
 # # Mind the scoring function and adjust max_score accordingly
 max_score = 0.9
 min_steps = 50
 termination = "simple"
-chkpt_file = "generate/2_14_42.chkpt"
+chkpt_file = "generate/3_9_42.chkpt"
 
 # [stage.diversity_filter]
 # # Add diversity filters from [diversity_filter] that is specific to this stage
@@ -55,5 +55,5 @@ chkpt_file = "generate/2_14_42.chkpt"
 
 [stage.scoring]
 # [stage.scoring] can reference external scoring file
-filename = "configs/score.toml"
+filename = "configs/score42.toml"
 filetype = "toml"
