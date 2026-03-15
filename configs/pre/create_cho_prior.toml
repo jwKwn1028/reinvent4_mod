@@ -1,0 +1,17 @@
+[io]
+smiles_file = "data/priors/cho/all.smi"
+model_file = "model/prior/cho/empty.prior"
+
+[network]
+num_layers = 3
+layer_size = 512
+dropout = 0.0
+layer_normalization = false
+standardize = true
+cell_type = "lstm"
+embedding_layer_size = 256
+max_sequence_length = 256
+
+[metadata]
+data_source = "data/CHO.csv"
+comment = "Empty REINVENT prior created from the CHO corpus"

@@ -1,0 +1,24 @@
+run_type = "transfer_learning"
+device = "cuda:0"
+tb_logdir = "tb_logs/priors/ch"
+seed = 42
+
+[parameters]
+num_epochs = 10
+save_every_n_epochs = 2
+batch_size = 100
+sample_batch_size = 2000
+input_model_file = "model/prior/ch/empty.prior"
+output_model_file = "model/prior/ch/reinvent.prior"
+smiles_file = "data/priors/ch/train.smi"
+validation_smiles_file = "data/priors/ch/valid.smi"
+standardize_smiles = true
+randomize_smiles = true
+randomize_all_smiles = false
+internal_diversity = true
+max_sequence_length = 256
+
+[scheduler]
+lr = 1.0e-4
+step = 10
+gamma = 0.95

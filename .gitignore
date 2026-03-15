@@ -40,3 +40,4 @@ vis/
 *.pt
 *.smi
 AGENTS.md
+*.sh
